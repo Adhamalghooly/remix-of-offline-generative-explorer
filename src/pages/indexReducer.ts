@@ -288,6 +288,8 @@ function coreReducer(state: AppState, action: AppAction): AppState {
       return { ...state, analyzed: false };
     case 'SET_SLAB_PROPS_OVERRIDE':
       return { ...state, slabPropsOverrides: { ...state.slabPropsOverrides, [action.areaId]: { ...state.slabPropsOverrides[action.areaId], ...action.override } }, analyzed: false };
+    case 'SET_SUPPORT_RESTRAINTS':
+      return { ...state, supportRestraints: { ...state.supportRestraints, [action.posKey]: action.restraints }, analyzed: false };
     case 'SAVE_SNAPSHOT':
       return { ...state, savedMessage: action.message || 'تم الحفظ ✓' };
     case 'CLEAR_SAVED_MESSAGE':

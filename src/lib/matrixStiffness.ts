@@ -393,7 +393,7 @@ export function envelopeAnalysis(
       Mright: mrightValues.reduce((best, v) => Math.abs(v) > Math.abs(best) ? v : best, 0),
       Vleft: vleftValues.reduce((best, v) => Math.abs(v) > Math.abs(best) ? v : best, 0),
       Vright: vrightValues.reduce((best, v) => Math.abs(v) > Math.abs(best) ? v : best, 0),
-      Mmid: mmidValues.reduce((best, v) => Math.abs(v) > Math.abs(best) ? v : best, 0),
+      Mmid: Math.max(0, ...mmidValues),
     };
 
     // Use diagram from the worst-case load case for Mmid

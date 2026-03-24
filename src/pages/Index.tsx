@@ -914,32 +914,6 @@ const Index = () => {
                       <ParamInput label="ارتفاع الجسر (مم)" value={beamH} onChange={v => dispatch({ type: 'SET_BEAM_H', value: v })} />
                       <ParamInput label="عرض العمود (مم)" value={colB} onChange={v => dispatch({ type: 'SET_COL_B', value: v })} />
                       <ParamInput label="عمق العمود (مم)" value={colH} onChange={v => dispatch({ type: 'SET_COL_H', value: v })} />
-                      <ParamInput label="ارتفاع العمود العلوي (مم)" value={colL} onChange={v => dispatch({ type: 'SET_COL_L', value: v })} />
-                      <ParamInput label="ارتفاع العمود السفلي (مم)" value={colLBelow} onChange={v => dispatch({ type: 'SET_COL_L_BELOW', value: v })} />
-                      <div className="col-span-2 grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="text-xs text-muted-foreground mb-1 block">اتصال العمود العلوي</label>
-                          <select
-                            className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm"
-                            value={colTopEndCondition}
-                            onChange={e => dispatch({ type: 'SET_COL_TOP_END_CONDITION', value: e.target.value as 'F' | 'P' })}
-                          >
-                            <option value="P">مفصلي (Pinned)</option>
-                            <option value="F">ثابت (Fixed)</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="text-xs text-muted-foreground mb-1 block">اتصال العمود السفلي</label>
-                          <select
-                            className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm"
-                            value={colBottomEndCondition}
-                            onChange={e => dispatch({ type: 'SET_COL_BOTTOM_END_CONDITION', value: e.target.value as 'F' | 'P' })}
-                          >
-                            <option value="P">مفصلي (Pinned)</option>
-                            <option value="F">ثابت (Fixed)</option>
-                          </select>
-                        </div>
-                      </div>
                     </CardContent>
                     <CardFooter className="pt-2">
                       <Button size="sm" className="w-full h-9 text-xs" onClick={() => dispatch({ type: 'SAVE_SNAPSHOT', message: 'تم حفظ أبعاد العناصر ✓' })}>
