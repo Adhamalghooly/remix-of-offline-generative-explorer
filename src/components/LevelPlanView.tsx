@@ -10,6 +10,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
+
+export interface SupportRestraints {
+  ux: boolean; uy: boolean; uz: boolean;
+  rx: boolean; ry: boolean; rz: boolean;
+}
 
 interface LevelPlanViewProps {
   columns: Column[];
@@ -18,6 +25,8 @@ interface LevelPlanViewProps {
   stories: Story[];
   selectedElevation: number;
   onColumnSupportChange: (colId: string, endType: 'top' | 'bottom', value: 'F' | 'P') => void;
+  onSupportRestraintsChange?: (posKeys: string[], restraints: SupportRestraints) => void;
+  supportRestraints?: Record<string, SupportRestraints>;
   onElementLongPress?: (type: 'beam' | 'column' | 'slab', id: string) => void;
 }
 
@@ -31,13 +40,10 @@ interface ElementEditDialog {
   type: 'beam' | 'column' | 'slab' | '';
   id: string;
   label: string;
-  // beam/column dimensions
   b: number;
   h: number;
   length: number;
-  // slab props
   thickness: number;
-  // column support
   topEnd: 'F' | 'P';
   bottomEnd: 'F' | 'P';
   x: number;
@@ -50,12 +56,12 @@ interface SupportDialogState {
   colLabel: string;
   x: number;
   y: number;
-  topEnd: 'F' | 'P';
-  bottomEnd: 'F' | 'P';
+  restraints: SupportRestraints;
+  applyToAll: boolean;
 }
 
 export default function LevelPlanView({
-  columns, beams, slabs, stories, selectedElevation, onColumnSupportChange, onElementLongPress,
+  columns, beams, slabs, stories, selectedElevation, onColumnSupportChange, onSupportRestraintsChange, supportRestraints, onElementLongPress,
 }: LevelPlanViewProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [viewBox, setViewBox] = useState({ x: -2, y: -2, w: 16, h: 18 });
@@ -67,7 +73,9 @@ export default function LevelPlanView({
     thickness: 160, topEnd: 'F', bottomEnd: 'F', x: 0, y: 0,
   });
   const [supportDialog, setSupportDialog] = useState<SupportDialogState>({
-    open: false, colId: '', colLabel: '', x: 0, y: 0, topEnd: 'F', bottomEnd: 'F',
+    open: false, colId: '', colLabel: '', x: 0, y: 0,
+    restraints: { ux: true, uy: true, uz: true, rx: true, ry: true, rz: true },
+    applyToAll: false,
   });
 
   const isGroundLevel = selectedElevation <= 1;
