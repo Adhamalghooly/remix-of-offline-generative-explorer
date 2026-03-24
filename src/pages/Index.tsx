@@ -176,7 +176,13 @@ const Index = () => {
         const colId = `C${colSeq}`;
         const legacyId = stories.length > 1 ? `${c.id}_${story.id}` : c.id;
         const ov = colOverrides[c.id] || colOverrides[legacyId] || colOverrides[colId];
-        const colHeight = ov?.L ?? colL;
+        const colHeight = ov?.L ?? storyHeight;
+        // Derive bottom end condition from per-support DOF restraints
+        const supportKey = `${c.x.toFixed(2)}_${c.y.toFixed(2)}_${storyElev}`;
+        const sr = supportRestraints?.[supportKey];
+        const bottomEnd: 'F' | 'P' = sr
+          ? ((sr.ux && sr.uy && sr.uz && sr.rx && sr.ry && sr.rz) ? 'F' : 'P')
+          : colBottomEndCondition as 'F' | 'P';
         allCols.push({
           ...c,
           id: colId,
@@ -189,7 +195,7 @@ const Index = () => {
           zTop: storyElev + colHeight,
           isRemoved: removedColumnIds.includes(c.id) || removedColumnIds.includes(colId) || removedColumnIds.includes(legacyId),
           topEndCondition: colTopEndCondition as 'F' | 'P',
-          bottomEndCondition: colBottomEndCondition as 'F' | 'P',
+          bottomEndCondition: bottomEnd,
         });
         colSeq++;
       }
