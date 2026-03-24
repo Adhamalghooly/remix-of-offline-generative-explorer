@@ -279,11 +279,15 @@ export default function LevelPlanView({
       if (isGroundLevel && type === 'column') {
         const col = colsAtLevel.find(c => c.id === id);
         if (col) {
+          const sKey = `${col.x.toFixed(2)}_${col.y.toFixed(2)}_${col.zBottom ?? 0}`;
+          const cur = supportRestraints?.[sKey]
+            || (col.bottomEndCondition === 'F'
+              ? { ux: true, uy: true, uz: true, rx: true, ry: true, rz: true }
+              : { ux: true, uy: true, uz: true, rx: false, ry: false, rz: false });
           setSupportDialog({
             open: true, colId: col.id, colLabel: col.id,
             x: col.x, y: col.y,
-            topEnd: col.topEndCondition || 'F',
-            bottomEnd: col.bottomEndCondition || 'F',
+            restraints: { ...cur }, applyToAll: false,
           });
         }
       } else {
