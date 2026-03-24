@@ -75,7 +75,7 @@ const Index = () => {
     analyzed, frameResults, bobConnections,
     activeTab, mode, activeTool, pendingNode,
     selectedNodeId, selectedFrameId, selectedAreaId,
-    removedColumnIds, beamOverrides, colOverrides, slabPropsOverrides, extraBeams, extraColumns,
+    removedColumnIds, beamOverrides, colOverrides, slabPropsOverrides, extraBeams, extraColumns, supportRestraints,
     modalOpen, selectedElement, elemPropsOpen, elemPropsFrameId, elemPropsAreaId,
     diagramOpen, diagramData, savedMessage,
   } = state;
