@@ -229,14 +229,27 @@ export default function LevelPlanView({
       } else if (type === 'column') {
         const col = colsAtLevel.find(c => c.id === id);
         if (col) {
-          setEditDialog({
-            open: true, type: 'column', id, label: id,
-            b: col.b ?? 300, h: col.h ?? 400, length: col.L ?? 0,
-            thickness: 0,
-            topEnd: col.topEndCondition || 'F',
-            bottomEnd: col.bottomEndCondition || 'F',
-            x: col.x, y: col.y,
-          });
+          if (isGroundLevel) {
+            const sKey = `${col.x.toFixed(2)}_${col.y.toFixed(2)}_${col.zBottom ?? 0}`;
+            const cur = supportRestraints?.[sKey]
+              || (col.bottomEndCondition === 'F'
+                ? { ux: true, uy: true, uz: true, rx: true, ry: true, rz: true }
+                : { ux: true, uy: true, uz: true, rx: false, ry: false, rz: false });
+            setSupportDialog({
+              open: true, colId: col.id, colLabel: col.id,
+              x: col.x, y: col.y,
+              restraints: { ...cur }, applyToAll: false,
+            });
+          } else {
+            setEditDialog({
+              open: true, type: 'column', id, label: id,
+              b: col.b ?? 300, h: col.h ?? 400, length: col.L ?? 0,
+              thickness: 0,
+              topEnd: col.topEndCondition || 'F',
+              bottomEnd: col.bottomEndCondition || 'F',
+              x: col.x, y: col.y,
+            });
+          }
         }
       } else if (type === 'slab') {
         const slab = slabsAtLevel.find(s => s.id === id);
