@@ -398,7 +398,8 @@ const Index = () => {
     for (const d of beamDesigns) {
       const beam = beamsWithLoads.find(b => b.id === d.beamId);
       if (!beam) continue;
-      const Mu_max = Math.max(Math.abs(d.Mleft), d.Mmid, Math.abs(d.Mright));
+      // ACI 318-19: each section designed independently; Mu_max for reporting only
+      const Mu_max = Math.max(Math.abs(d.Mleft), Math.abs(d.Mmid), Math.abs(d.Mright));
 
       // Calculate effective flange width for T-beam diagnosis
       let effFlangeW = 0;
