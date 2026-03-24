@@ -108,6 +108,7 @@ export type AppAction =
   | { type: 'SELECT_STORY'; storyId: string }
   | { type: 'COPY_STORY_ELEMENTS'; fromStoryId: string; toStoryId: string }
   | { type: 'SET_STORIES'; stories: Story[] }
+  | { type: 'SET_SUPPORT_RESTRAINTS'; posKey: string; restraints: { ux: boolean; uy: boolean; uz: boolean; rx: boolean; ry: boolean; rz: boolean } }
   | { type: 'LOAD_PROJECT'; data: Partial<AppState> }
   | { type: 'RESET_TO_DEFAULT' };
 
