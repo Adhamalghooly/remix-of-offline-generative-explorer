@@ -811,6 +811,8 @@ const Index = () => {
                     stories={stories}
                     selectedElevation={modelerElevation}
                     onColumnSupportChange={handleColumnSupportChange}
+                    onSupportRestraintsChange={handleSupportRestraintsChange}
+                    supportRestraints={supportRestraints}
                     onElementLongPress={handleLevelElementLongPress}
                   />
                 </div>
