@@ -49,6 +49,7 @@ export interface AppState {
   // Undo
   undoStack: AppState[];
   savedMessage: string;
+  supportRestraints: Record<string, { ux: boolean; uy: boolean; uz: boolean; rx: boolean; ry: boolean; rz: boolean }>;
 }
 
 export type AppAction =
@@ -107,6 +108,7 @@ export type AppAction =
   | { type: 'SELECT_STORY'; storyId: string }
   | { type: 'COPY_STORY_ELEMENTS'; fromStoryId: string; toStoryId: string }
   | { type: 'SET_STORIES'; stories: Story[] }
+  | { type: 'SET_SUPPORT_RESTRAINTS'; posKey: string; restraints: { ux: boolean; uy: boolean; uz: boolean; rx: boolean; ry: boolean; rz: boolean } }
   | { type: 'LOAD_PROJECT'; data: Partial<AppState> }
   | { type: 'RESET_TO_DEFAULT' };
 
@@ -174,6 +176,7 @@ export const initialState: AppState = {
   diagramData: null,
   undoStack: [],
   savedMessage: '',
+  supportRestraints: {},
 };
 
 // Actions that should NOT be tracked in undo (UI-only actions)
@@ -285,6 +288,8 @@ function coreReducer(state: AppState, action: AppAction): AppState {
       return { ...state, analyzed: false };
     case 'SET_SLAB_PROPS_OVERRIDE':
       return { ...state, slabPropsOverrides: { ...state.slabPropsOverrides, [action.areaId]: { ...state.slabPropsOverrides[action.areaId], ...action.override } }, analyzed: false };
+    case 'SET_SUPPORT_RESTRAINTS':
+      return { ...state, supportRestraints: { ...state.supportRestraints, [action.posKey]: action.restraints }, analyzed: false };
     case 'SAVE_SNAPSHOT':
       return { ...state, savedMessage: action.message || 'تم الحفظ ✓' };
     case 'CLEAR_SAVED_MESSAGE':

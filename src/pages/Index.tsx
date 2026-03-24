@@ -75,7 +75,7 @@ const Index = () => {
     analyzed, frameResults, bobConnections,
     activeTab, mode, activeTool, pendingNode,
     selectedNodeId, selectedFrameId, selectedAreaId,
-    removedColumnIds, beamOverrides, colOverrides, slabPropsOverrides, extraBeams, extraColumns,
+    removedColumnIds, beamOverrides, colOverrides, slabPropsOverrides, extraBeams, extraColumns, supportRestraints,
     modalOpen, selectedElement, elemPropsOpen, elemPropsFrameId, elemPropsAreaId,
     diagramOpen, diagramData, savedMessage,
   } = state;
@@ -111,13 +111,15 @@ const Index = () => {
   }, [stories]);
 
   // Handler for changing individual column support conditions
-  const handleColumnSupportChange = useCallback((colId: string, endType: 'top' | 'bottom', value: 'F' | 'P') => {
-    // For now, apply globally (same as the input section controls)
-    // In the future, this could be per-column
-    if (endType === 'top') {
-      dispatch({ type: 'SET_COL_TOP_END_CONDITION', value });
-    } else {
-      dispatch({ type: 'SET_COL_BOTTOM_END_CONDITION', value });
+  // Legacy support change callback (kept for prop compatibility)
+  const handleColumnSupportChange = useCallback((_colId: string, _endType: 'top' | 'bottom', _value: 'F' | 'P') => {
+    // No-op: replaced by per-DOF support restraints
+  }, []);
+
+  // Per-DOF support restraints change
+  const handleSupportRestraintsChange = useCallback((posKeys: string[], restraints: { ux: boolean; uy: boolean; uz: boolean; rx: boolean; ry: boolean; rz: boolean }) => {
+    for (const key of posKeys) {
+      dispatch({ type: 'SET_SUPPORT_RESTRAINTS', posKey: key, restraints });
     }
   }, []);
 
@@ -174,7 +176,13 @@ const Index = () => {
         const colId = `C${colSeq}`;
         const legacyId = stories.length > 1 ? `${c.id}_${story.id}` : c.id;
         const ov = colOverrides[c.id] || colOverrides[legacyId] || colOverrides[colId];
-        const colHeight = ov?.L ?? colL;
+        const colHeight = ov?.L ?? storyHeight;
+        // Derive bottom end condition from per-support DOF restraints
+        const supportKey = `${c.x.toFixed(2)}_${c.y.toFixed(2)}_${storyElev}`;
+        const sr = supportRestraints?.[supportKey];
+        const bottomEnd: 'F' | 'P' = sr
+          ? ((sr.ux && sr.uy && sr.uz && sr.rx && sr.ry && sr.rz) ? 'F' : 'P')
+          : colBottomEndCondition as 'F' | 'P';
         allCols.push({
           ...c,
           id: colId,
@@ -187,7 +195,7 @@ const Index = () => {
           zTop: storyElev + colHeight,
           isRemoved: removedColumnIds.includes(c.id) || removedColumnIds.includes(colId) || removedColumnIds.includes(legacyId),
           topEndCondition: colTopEndCondition as 'F' | 'P',
-          bottomEndCondition: colBottomEndCondition as 'F' | 'P',
+          bottomEndCondition: bottomEnd,
         });
         colSeq++;
       }
@@ -201,7 +209,7 @@ const Index = () => {
       });
     }
     return allCols;
-  }, [slabs, colB, colH, colL, colLBelow, removedColumnIds, colOverrides, extraColumns, colTopEndCondition, colBottomEndCondition, stories, selectedStoryId]);
+  }, [slabs, colB, colH, colL, colLBelow, removedColumnIds, colOverrides, extraColumns, colTopEndCondition, colBottomEndCondition, stories, selectedStoryId, supportRestraints]);
 
   const beams = useMemo(() => {
     // Deduplicate slabs by position to generate base beam topology (avoid multi-story duplication)
@@ -390,7 +398,8 @@ const Index = () => {
     for (const d of beamDesigns) {
       const beam = beamsWithLoads.find(b => b.id === d.beamId);
       if (!beam) continue;
-      const Mu_max = Math.max(Math.abs(d.Mleft), d.Mmid, Math.abs(d.Mright));
+      // ACI 318-19: each section designed independently; Mu_max for reporting only
+      const Mu_max = Math.max(Math.abs(d.Mleft), Math.abs(d.Mmid), Math.abs(d.Mright));
 
       // Calculate effective flange width for T-beam diagnosis
       let effFlangeW = 0;
@@ -802,6 +811,8 @@ const Index = () => {
                     stories={stories}
                     selectedElevation={modelerElevation}
                     onColumnSupportChange={handleColumnSupportChange}
+                    onSupportRestraintsChange={handleSupportRestraintsChange}
+                    supportRestraints={supportRestraints}
                     onElementLongPress={handleLevelElementLongPress}
                   />
                 </div>
@@ -903,32 +914,6 @@ const Index = () => {
                       <ParamInput label="ارتفاع الجسر (مم)" value={beamH} onChange={v => dispatch({ type: 'SET_BEAM_H', value: v })} />
                       <ParamInput label="عرض العمود (مم)" value={colB} onChange={v => dispatch({ type: 'SET_COL_B', value: v })} />
                       <ParamInput label="عمق العمود (مم)" value={colH} onChange={v => dispatch({ type: 'SET_COL_H', value: v })} />
-                      <ParamInput label="ارتفاع العمود العلوي (مم)" value={colL} onChange={v => dispatch({ type: 'SET_COL_L', value: v })} />
-                      <ParamInput label="ارتفاع العمود السفلي (مم)" value={colLBelow} onChange={v => dispatch({ type: 'SET_COL_L_BELOW', value: v })} />
-                      <div className="col-span-2 grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="text-xs text-muted-foreground mb-1 block">اتصال العمود العلوي</label>
-                          <select
-                            className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm"
-                            value={colTopEndCondition}
-                            onChange={e => dispatch({ type: 'SET_COL_TOP_END_CONDITION', value: e.target.value as 'F' | 'P' })}
-                          >
-                            <option value="P">مفصلي (Pinned)</option>
-                            <option value="F">ثابت (Fixed)</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="text-xs text-muted-foreground mb-1 block">اتصال العمود السفلي</label>
-                          <select
-                            className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm"
-                            value={colBottomEndCondition}
-                            onChange={e => dispatch({ type: 'SET_COL_BOTTOM_END_CONDITION', value: e.target.value as 'F' | 'P' })}
-                          >
-                            <option value="P">مفصلي (Pinned)</option>
-                            <option value="F">ثابت (Fixed)</option>
-                          </select>
-                        </div>
-                      </div>
                     </CardContent>
                     <CardFooter className="pt-2">
                       <Button size="sm" className="w-full h-9 text-xs" onClick={() => dispatch({ type: 'SAVE_SNAPSHOT', message: 'تم حفظ أبعاد العناصر ✓' })}>
