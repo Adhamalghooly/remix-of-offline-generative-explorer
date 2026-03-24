@@ -310,13 +310,21 @@ function buildResults(
     const Vright = -fe[2];
     const Mright = fe[3];
 
-    // Midspan moment (signed) to preserve physical shape in diagrams
-    const xMid = elem.L * 0.5;
-    let Mmid = Mleft + Vleft * xMid - elem.w * xMid * xMid / 2;
-    if (elem.pointLoads) {
-      for (const pl of elem.pointLoads) {
-        if (xMid > pl.a) Mmid -= pl.P * (xMid - pl.a);
+    // ETABS-style: compute moment at multiple stations to find actual max positive (sagging) moment
+    // ETABS divides each beam into ~20 output stations
+    const nStations = 20;
+    let Mmid = 0;
+    for (let s = 0; s <= nStations; s++) {
+      const x = (s / nStations) * elem.L;
+      let M = Mleft + Vleft * x - elem.w * x * x / 2;
+      if (elem.pointLoads) {
+        for (const pl of elem.pointLoads) {
+          if (x > pl.a) M -= pl.P * (x - pl.a);
+        }
       }
+      // Track max positive (sagging) moment — ETABS sign convention:
+      // positive = tension at bottom (sagging), negative = tension at top (hogging)
+      if (M > Mmid) Mmid = M;
     }
 
     reactions[elem.nodeI] += fe[0];
