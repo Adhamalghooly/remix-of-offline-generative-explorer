@@ -49,6 +49,7 @@ export interface AppState {
   // Undo
   undoStack: AppState[];
   savedMessage: string;
+  supportRestraints: Record<string, { ux: boolean; uy: boolean; uz: boolean; rx: boolean; ry: boolean; rz: boolean }>;
 }
 
 export type AppAction =
