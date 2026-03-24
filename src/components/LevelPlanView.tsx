@@ -305,16 +305,19 @@ export default function LevelPlanView({
     }
   }, []);
 
-  const handleSupportChange = (endType: 'top' | 'bottom', value: 'F' | 'P') => {
-    const key = `${supportDialog.x.toFixed(2)}_${supportDialog.y.toFixed(2)}`;
-    const cols = uniqueColPositions.get(key) || [];
-    for (const c of cols) {
-      onColumnSupportChange(c.id, endType, value);
+  const handleSupportSave = () => {
+    const { restraints, applyToAll, x, y } = supportDialog;
+    if (applyToAll) {
+      const posKeys = Array.from(uniqueColPositions.entries()).map(([_, cols]) => {
+        const c = cols[0];
+        return `${c.x.toFixed(2)}_${c.y.toFixed(2)}_${c.zBottom ?? 0}`;
+      });
+      onSupportRestraintsChange?.(posKeys, restraints);
+    } else {
+      const key = `${x.toFixed(2)}_${y.toFixed(2)}_${selectedElevation}`;
+      onSupportRestraintsChange?.([key], restraints);
     }
-    setSupportDialog(prev => ({
-      ...prev,
-      [endType === 'top' ? 'topEnd' : 'bottomEnd']: value,
-    }));
+    setSupportDialog(prev => ({ ...prev, open: false }));
   };
 
   const handleEditSave = () => {
