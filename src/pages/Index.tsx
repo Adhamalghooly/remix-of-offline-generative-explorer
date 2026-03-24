@@ -111,13 +111,15 @@ const Index = () => {
   }, [stories]);
 
   // Handler for changing individual column support conditions
-  const handleColumnSupportChange = useCallback((colId: string, endType: 'top' | 'bottom', value: 'F' | 'P') => {
-    // For now, apply globally (same as the input section controls)
-    // In the future, this could be per-column
-    if (endType === 'top') {
-      dispatch({ type: 'SET_COL_TOP_END_CONDITION', value });
-    } else {
-      dispatch({ type: 'SET_COL_BOTTOM_END_CONDITION', value });
+  // Legacy support change callback (kept for prop compatibility)
+  const handleColumnSupportChange = useCallback((_colId: string, _endType: 'top' | 'bottom', _value: 'F' | 'P') => {
+    // No-op: replaced by per-DOF support restraints
+  }, []);
+
+  // Per-DOF support restraints change
+  const handleSupportRestraintsChange = useCallback((posKeys: string[], restraints: { ux: boolean; uy: boolean; uz: boolean; rx: boolean; ry: boolean; rz: boolean }) => {
+    for (const key of posKeys) {
+      dispatch({ type: 'SET_SUPPORT_RESTRAINTS', posKey: key, restraints });
     }
   }, []);
 
