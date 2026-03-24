@@ -746,56 +746,87 @@ export default function LevelPlanView({
       <Dialog open={supportDialog.open} onOpenChange={open => setSupportDialog(prev => ({ ...prev, open }))}>
         <DialogContent className="max-w-sm" dir="rtl">
           <DialogHeader>
-            <DialogTitle>
-              درجات الحرية - {supportDialog.colLabel} ({supportDialog.x}, {supportDialog.y})
-            </DialogTitle>
+            <DialogTitle>خصائص الركيزة - {supportDialog.colLabel}</DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground">
+              الموقع ({supportDialog.x.toFixed(1)}, {supportDialog.y.toFixed(1)}) - تعديل درجات الحرية
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
+            {/* Quick presets */}
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" className="flex-1 text-xs h-9"
+                onClick={() => setSupportDialog(prev => ({
+                  ...prev,
+                  restraints: { ux: true, uy: true, uz: true, rx: true, ry: true, rz: true }
+                }))}>
+                🔒 ثابت (Fixed)
+              </Button>
+              <Button size="sm" variant="outline" className="flex-1 text-xs h-9"
+                onClick={() => setSupportDialog(prev => ({
+                  ...prev,
+                  restraints: { ux: true, uy: true, uz: true, rx: false, ry: false, rz: false }
+                }))}>
+                📌 مفصلي (Pinned)
+              </Button>
+            </div>
+
+            {/* Per-DOF toggles */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">اتصال أسفل العمود (الركيزة)</label>
-              <div className="flex gap-2">
-                <Button variant={supportDialog.bottomEnd === 'F' ? 'default' : 'outline'}
-                  size="sm" className="flex-1"
-                  onClick={() => handleSupportChange('bottom', 'F')}>
-                  🔒 ثابت (Fixed)
-                </Button>
-                <Button variant={supportDialog.bottomEnd === 'P' ? 'default' : 'outline'}
-                  size="sm" className="flex-1"
-                  onClick={() => handleSupportChange('bottom', 'P')}>
-                  📌 مفصلي (Pinned)
-                </Button>
+              <label className="text-sm font-medium">درجات الحرية (الركيزة)</label>
+              <div className="grid grid-cols-3 gap-2 bg-muted/50 rounded-lg p-3">
+                {(['ux', 'uy', 'uz', 'rx', 'ry', 'rz'] as const).map(dof => (
+                  <div key={dof} className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-mono">{dof.toUpperCase()}</span>
+                    <Switch
+                      checked={supportDialog.restraints[dof]}
+                      onCheckedChange={v => setSupportDialog(prev => ({
+                        ...prev,
+                        restraints: { ...prev.restraints, [dof]: v }
+                      }))}
+                    />
+                  </div>
+                ))}
               </div>
-              <p className="text-xs text-muted-foreground">
-                {supportDialog.bottomEnd === 'F'
-                  ? 'جميع درجات الحرية مقيدة (Ux, Uy, Uz, Rx, Ry, Rz)'
-                  : 'الإزاحات مقيدة، الدورانات حرة (Ux, Uy, Uz مقيدة)'}
+              <p className="text-[10px] text-muted-foreground">
+                تشغيل = مقيد (Restrained) • إيقاف = حر (Free)
               </p>
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">اتصال أعلى العمود</label>
-              <div className="flex gap-2">
-                <Button variant={supportDialog.topEnd === 'F' ? 'default' : 'outline'}
-                  size="sm" className="flex-1"
-                  onClick={() => handleSupportChange('top', 'F')}>
-                  🔒 ثابت (Fixed)
-                </Button>
-                <Button variant={supportDialog.topEnd === 'P' ? 'default' : 'outline'}
-                  size="sm" className="flex-1"
-                  onClick={() => handleSupportChange('top', 'P')}>
-                  📌 مفصلي (Pinned)
-                </Button>
+
+            {/* Apply to all checkbox */}
+            <div className="flex items-center gap-2 border-t pt-3 border-border">
+              <Checkbox
+                id="apply-all-supports"
+                checked={supportDialog.applyToAll}
+                onCheckedChange={(v) => setSupportDialog(prev => ({ ...prev, applyToAll: !!v }))}
+              />
+              <label htmlFor="apply-all-supports" className="text-xs cursor-pointer">
+                تعميم على جميع الركائز عند هذا المنسوب
+              </label>
+            </div>
+
+            {/* Summary */}
+            <div className="border rounded p-2 bg-muted/50 text-xs space-y-1 border-border">
+              <div className="font-medium">ملخص الركيزة:</div>
+              <div>
+                {supportDialog.restraints.ux && supportDialog.restraints.uy && supportDialog.restraints.uz &&
+                 supportDialog.restraints.rx && supportDialog.restraints.ry && supportDialog.restraints.rz
+                  ? <Badge variant="default">ثابت (Fixed) - جميع DOFs مقيدة</Badge>
+                  : supportDialog.restraints.ux && supportDialog.restraints.uy && supportDialog.restraints.uz &&
+                    !supportDialog.restraints.rx && !supportDialog.restraints.ry && !supportDialog.restraints.rz
+                  ? <Badge variant="secondary">مفصلي (Pinned) - الإزاحات مقيدة</Badge>
+                  : <Badge variant="outline">مخصص (Custom)</Badge>
+                }
               </div>
             </div>
-            <div className="border rounded p-2 bg-muted/50 text-xs space-y-1">
-              <div className="font-medium">ملخص:</div>
-              <div>أسفل: <Badge variant={supportDialog.bottomEnd === 'F' ? 'default' : 'secondary'}>
-                {supportDialog.bottomEnd === 'F' ? 'Fixed' : 'Pinned'}
-              </Badge></div>
-              <div>أعلى: <Badge variant={supportDialog.topEnd === 'F' ? 'default' : 'secondary'}>
-                {supportDialog.topEnd === 'F' ? 'Fixed' : 'Pinned'}
-              </Badge></div>
-            </div>
           </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" size="sm" onClick={() => setSupportDialog(prev => ({ ...prev, open: false }))}>
+              إلغاء
+            </Button>
+            <Button size="sm" onClick={handleSupportSave}>
+              حفظ
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
