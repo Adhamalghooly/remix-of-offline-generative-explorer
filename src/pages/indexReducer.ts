@@ -176,6 +176,7 @@ export const initialState: AppState = {
   diagramData: null,
   undoStack: [],
   savedMessage: '',
+  supportRestraints: {},
 };
 
 // Actions that should NOT be tracked in undo (UI-only actions)
