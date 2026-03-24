@@ -209,7 +209,7 @@ const Index = () => {
       });
     }
     return allCols;
-  }, [slabs, colB, colH, colL, colLBelow, removedColumnIds, colOverrides, extraColumns, colTopEndCondition, colBottomEndCondition, stories, selectedStoryId]);
+  }, [slabs, colB, colH, colL, colLBelow, removedColumnIds, colOverrides, extraColumns, colTopEndCondition, colBottomEndCondition, stories, selectedStoryId, supportRestraints]);
 
   const beams = useMemo(() => {
     // Deduplicate slabs by position to generate base beam topology (avoid multi-story duplication)
